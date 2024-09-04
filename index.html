@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #history-menu, #personal-menu {
+            position: fixed;
+            background-color: #34495e;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 250px;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s ease-in-out;
+        }
+        #history-menu {
+            top: 60px;
+            left: -250px;
+        }
+        #personal-menu {
+            top: 60px;
+            right: -250px;
+        }
+        #history-menu.open {
+            left: 20px;
+        }
+        #personal-menu.open {
+            right: 20px;
+        }
+        #history-list, #mistakes-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        #history-list li, #mistakes-list li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #2c3e50;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #history-list li:hover, #mistakes-list li:hover {
+            background-color: #3498db;
+        }
+        #history-toggle, #personal-toggle {
+            position: fixed;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        #history-toggle:hover, #personal-toggle:hover {
+            background-color: #2980b9;
+            transform: scale(1.1);
+        }
+        #history-toggle {
+            top: 20px;
+            left: 20px;
+        }
+        #personal-toggle {
+            top: 20px;
+            right: 20px;
+        }
+        .menu-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .sub-menu-title {
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            color: #3498db;
+        }
+        #main-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #bdc3c7;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #27ae60;
+        }
+        #word-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .word-button {
+            background-color: #3498db;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .word-button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+        #translation-output {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: center;
+            color: #2c3e50;
+        }
+        #question-container {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .feedback {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+        .correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+        #user-info input {
+            margin: 5px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #user-stats {
+            margin-top: 20px;
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        #user-stats p {
+            margin: 5px 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            width: 45%;
+        }
+    </style>
+</head>
+<body>
+    <h1>English Game</h1>
+    <div id="game-container">
+        <button id="history-toggle" onclick="toggleMenu('history-menu')"><i class="fas fa-book"></i></button>
+        <button id="personal-toggle" onclick="toggleMenu('personal-menu')"><i class="fas fa-user"></i></button>
+        <div id="history-menu">
+            <h2 class="menu-title">מאגר מילים</h2>
+            <ul id="history-list"></ul>
+        </div>
+        <div id="personal-menu">
+            <h2 class="menu-title">איזור אישי</h2>
+            <div id="user-info">
+                <div id="user-info-display">
+                    <p>שם משתמש: <span id="display-user-name"></span></p>
+                    <p>אימייל: <span id="display-user-email"></span></p>
+                    <button onclick="toggleEditUserInfo()">ערוך פרטים</button>
+                </div>
+                <div id="user-info-edit" style="display: none;">
+                    <input type="text" id="user-name" placeholder="שם משתמש">
+                    <input type="email" id="user-email" placeholder="אימייל">
+                    <button onclick="saveUserInfo()">שמור</button>
+                </div>
+            </div>
+            <div id="user-stats">
+                <h3>סטטיסטיקות</h3>
+                <p>מילים שנלמדו: <span id="words-learned">0</span></p>
+                <p>תשובות נכונות: <span id="correct-answers">0</span></p>
+                <p>תשובות שגויות: <span id="incorrect-answers">0</span></p>
+            </div>
+            <h3 class="sub-menu-title">מילים שטעיתי</h3>
+            <ul id="mistakes-list"></ul>
+        </div>
+        <div id="main-content">
+            <input type="text" id="word-input" placeholder="הכנס מילה באנגלית">
+            <button onclick="addWord()">הוסף מילה</button>
+            <div id="last-word"></div>
+            <div id="question-container">
+                <h3 id="current-word"></h3>
+                <input type="text" id="answer-input" placeholder="הכנס תרגום בעברית">
+                <button onclick="checkAnswer()">בדוק</button>
+                <div id="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-word-modal" class="modal">
+        <div class="modal-content">
+            <h3>הוספת מילה חדשה</h3>
+            <input type="text" id="new-word-translation" placeholder="הכנס תרגום בעברית">
+            <div class="modal-buttons">
+                <button onclick="submitNewWord()">הוסף</button>
+                <button onclick="closeAddWordModal()">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const words = JSON.parse(localStorage.getItem('words') || '{}');
+        let currentWord = '';
+        const predefinedWords = [
+            { english: "apple", hebrew: "תפוח" },
+            { english: "book", hebrew: "ספר" },
+            { english: "cat", hebrew: "חתול" },
+            { english: "dog", hebrew: "כלב" },
+            { english: "house", hebrew: "בית" }
+        ];
+        const mistakes = JSON.parse(localStorage.getItem('mistakes') || '[]');
+        let userStats = JSON.parse(localStorage.getItem('userStats') || '{"wordsLearned": 0, "correctAnswers": 0, "incorrectAnswers": 0}');
+        let allWords = [];
+        let currentWordIndex = 0;
+        let lastUsedWord = '';
+        let newWordToAdd = '';
+
+        function closeAllMenus() {
+            const menus = [document.getElementById('history-menu'), document.getElementById('personal-menu')];
+            menus.forEach(menu => {
+                menu.classList.remove('open');
+                menu.style.display = 'none';
+            });
+        }
+
+        function toggleMenu(menuId) {
+            const menu = document.getElementById(menuId);
+            if (!menu.classList.contains('open')) {
+                closeAllMenus();
+                menu.classList.add('open');
+                menu.style.display = 'block';
+            } else {
+                menu.classList.remove('open');
+                menu.style.display = 'none';
+            }
+        }
+
+        function closeMenusOnOutsideClick(event) {
+            const historyMenu = document.getElementById('history-menu');
+            const personalMenu = document.getElementById('personal-menu');
+            const historyToggle = document.getElementById('history-toggle');
+            const personalToggle = document.getElementById('personal-toggle');
+
+            if (!historyMenu.contains(event.target) && event.target !== historyToggle &&
+                !personalMenu.contains(event.target) && event.target !== personalToggle) {
+                closeAllMenus();
+            }
+        }
+
+        function addWord() {
+            const input = document.getElementById('word-input');
+            newWordToAdd = input.value.trim().toLowerCase();
+            if (newWordToAdd && !words[newWordToAdd]) {
+                document.getElementById('add-word-modal').style.display = 'block';
+                document.getElementById('new-word-translation').focus();
+            }
+        }
+
+        function submitNewWord() {
+            const translation = document.getElementById('new-word-translation').value.trim();
+            if (translation) {
+                words[newWordToAdd] = translation;
+                saveToLocalStorage();
+                updateWordList();
+                updateHistoryMenu();
+                document.getElementById('word-input').value = '';
+                lastUsedWord = newWordToAdd;
+                updateLastWord();
+                closeAddWordModal();
+            }
+        }
+
+        function closeAddWordModal() {
+            document.getElementById('add-word-modal').style.display = 'none';
+            document.getElementById('new-word-translation').value = '';
+        }
+
+        function updateLastWord() {
+            const lastWordElement = document.getElementById('last-word');
+            if (lastUsedWord) {
+                lastWordElement.innerHTML = `<button class="word-button" onclick="showQuestion(allWords.findIndex(w => w.english === '${lastUsedWord}'))">${lastUsedWord}</button>`;
+            } else {
+                lastWordElement.innerHTML = '';
+            }
+        }
+
+        function updateWordList() {
+            allWords = predefinedWords.concat(Object.keys(words).map(word => ({ english: word, hebrew: words[word] })));
+        }
+
+        function updateHistoryMenu() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            allWords.forEach((word, index) => {
+                const li = document.createElement('li');
+                li.textContent = word.english;
+                li.onclick = () => showQuestion(index);
+                historyList.appendChild(li);
+            });
+        }
+
+        function showQuestion(index) {
+            currentWordIndex = index;
+            const word = allWords[currentWordIndex];
+            const questionContainer = document.getElementById('question-container');
+            const currentWordElement = document.getElementById('current-word');
+            const answerInput = document.getElementById('answer-input');
+            const feedback = document.getElementById('feedback');
+
+            currentWordElement.textContent = word.english;
+            answerInput.value = '';
+            feedback.innerHTML = '';
+            questionContainer.style.display = 'block';
+            answerInput.focus();
+
+            lastUsedWord = word.english;
+            updateLastWord();
+        }
+
+        function checkAnswer() {
+            const word = allWords[currentWordIndex];
+            const userAnswer = document.getElementById('answer-input').value.trim().toLowerCase();
+            const feedback = document.getElementById('feedback');
+
+            if (userAnswer === word.hebrew.toLowerCase()) {
+                feedback.innerHTML = '<span class="feedback correct">✓</span> נכון!';
+                userStats.correctAnswers++;
+                const index = mistakes.indexOf(word.english);
+                if (index > -1) {
+                    mistakes.splice(index, 1);
+                }
+            } else {
+                feedback.innerHTML = `<span class="feedback incorrect">✗</span> לא נכון. התשובה הנכונה היא: ${word.hebrew}`;
+                userStats.incorrectAnswers++;
+                if (!mistakes.includes(word.english)) {
+                    mistakes.push(word.english);
+                }
+            }
+
+            updatePersonalMenu();
+            saveToLocalStorage();
+
+            // הצג כפתור למילה הבאה
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'למילה הבאה';
+            nextButton.onclick = showNextWord;
+            feedback.appendChild(nextButton);
+        }
+
+        function showNextWord() {
+            currentWordIndex = (currentWordIndex + 1) % allWords.length;
+            showQuestion(currentWordIndex);
+        }
+
+        function updatePersonalMenu() {
+            const mistakesList = document.getElementById('mistakes-list');
+            mistakesList.innerHTML = '';
+            
+            mistakes.forEach(word => {
+                const li = document.createElement('li');
+                li.textContent = word;
+                li.onclick = () => showQuestion(allWords.findIndex(w => w.english === word));
+                mistakesList.appendChild(li);
+            });
+
+            document.getElementById('words-learned').textContent = allWords.length;
+            document.getElementById('correct-answers').textContent = userStats.correctAnswers;
+            document.getElementById('incorrect-answers').textContent = userStats.incorrectAnswers;
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('words', JSON.stringify(words));
+            localStorage.setItem('mistakes', JSON.stringify(mistakes));
+            localStorage.setItem('userStats', JSON.stringify(userStats));
+        }
+
+        function toggleEditUserInfo() {
+            const displayDiv = document.getElementById('user-info-display');
+            const editDiv = document.getElementById('user-info-edit');
+            if (displayDiv.style.display !== 'none') {
+                displayDiv.style.display = 'none';
+                editDiv.style.display = 'block';
+            } else {
+                displayDiv.style.display = 'block';
+                editDiv.style.display = 'none';
+            }
+        }
+
+        function saveUserInfo() {
+            const userName = document.getElementById('user-name').value;
+            const userEmail = document.getElementById('user-email').value;
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('userEmail', userEmail);
+            updateUserInfoDisplay();
+            toggleEditUserInfo();
+        }
+
+        function updateUserInfoDisplay() {
+            const userName = localStorage.getItem('userName') || 'לא הוגדר';
+            const userEmail = localStorage.getItem('userEmail') || 'לא הוגדר';
+            document.getElementById('display-user-name').textContent = userName;
+            document.getElementById('display-user-email').textContent = userEmail;
+            document.getElementById('user-name').value = userName;
+            document.getElementById('user-email').value = userEmail;
+        }
+
+        // Initialize
+        updateWordList();
+        updateHistoryMenu();
+        updatePersonalMenu();
+        updateLastWord();
+        updateUserInfoDisplay();
+
+        // Event Listeners
+        document.getElementById('word-input').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                addWord();
+            }
+        });
+
+        document.addEventListener('click', closeMenusOnOutsideClick);
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('add-word-modal');
+            if (event.target == modal) {
+                closeAddWordModal();
+            }
+        }
+    </script>
+</body>
+</html>
